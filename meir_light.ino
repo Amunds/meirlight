@@ -87,7 +87,7 @@ void setup()
   LEDS.addLeds<LED_TYPE, LED_DT, LED_CK, COLOR_ORDER>(leds, NUM_LEDS);   // For APA102 or WS2801
 
   FastLED.setBrightness(max_bright);
-  set_max_power_in_volts_and_milliamps(5, 500);               // FastLED Power management set at 5V, 500mA.
+  set_max_power_in_volts_and_milliamps(5, 1000);               // FastLED Power management set at 5V, 500mA.
 
   ledMode = 6; 
 
@@ -102,8 +102,8 @@ void loop()
       if (!IRLremote.receiving()) {  
         EVERY_N_MILLIS_I(thistimer, thisdelay) {                                    // Sets the original delay time.
           thistimer.setPeriod(thisdelay);                                           // This is how you update the delay value on the fly.
-          if(!staticMode)
-            strobe_mode(ledMode, 0);                                                 // Strobe to display the current sequence, but don't initialize the variables, so mc=0;
+          if(!staticMode)                                                           // Don't run if a static color is displaying
+            strobe_mode(ledMode, 0);                                                // Strobe to display the current sequence, but don't initialize the variables, so mc=0;
         }
         FastLED.show();
    }
@@ -135,7 +135,10 @@ void irrecv() {
       case 12:  strobe_mode(5,1); break;//fill_solid(leds, NUM_LEDS, CHSV( 192, 255, 255));   break;          //DIY1 - 
       case 13:  strobe_mode(6,1);   break;          //DIY2 - 
 
-      case 89: static_color(); break;
+      case 88: static_color(0); break; // Red (B1)
+      case 89: static_color(96); break; // Green (B2)
+      case 69: static_color(160); break; // Blue (B3)
+      case 72: static_color(224); break; // Pink (C4)
     
       default: break;                                // We could do something by default
     } // switch
@@ -153,11 +156,11 @@ void strobe_mode(uint8_t newMode, bool mc) {
   }
 
   switch(newMode) {
-    case 1: if(mc) {thisdelay=20; static_color(); } break;
+    case 1: if(mc) {} break;
     case 2: if(mc) { } break;
     case 4: if(mc) { }   break;
     case 5: if(mc) {thisdelay=20; hxyinc = random16(1,15); octaves=random16(1,3); hue_octaves=random16(1,5); hue_scale=random16(10, 50);  x=random16(); xscale=random16(); hxy= random16(); hue_time=random16(); hue_speed=random16(1,3); x_speed=random16(1,30);} noise16_pal(); break;
-    case 6: if(mc) { thisdelay=10; thisdir=1; thisrot=1; thisdiff=1;} rainbow_march(); break;
+    case 6: if(mc) { thisdelay=100; thisdir=1; thisrot=1; thisdiff=1;} rainbow_march(); break;
   }
 
   //Serial.print("MC: "); 
@@ -173,10 +176,10 @@ void toggle_on_off() {
   }
 }
 
-void static_color() {
+void static_color(uint8_t hue) {
   staticMode = true;
   fill_solid(leds,NUM_LEDS,CRGB(0,0,0));
   delay(10);
-  fill_solid( leds, NUM_LEDS, CHSV( 190, 187, 255) );
+  fill_solid( leds, NUM_LEDS, CHSV( hue, 255, 255) );
 }
 
