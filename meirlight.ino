@@ -64,12 +64,13 @@ long summ=0;
 
 #include "rainbow_march.h"
 #include "noise16_pal.h"
+#include "addglitter.h"
 
 
 // Choose a valid PinInterrupt or PinChangeInterrupt* pin of your Arduino board
 #define pinIR 2
 
-// Choose the IR protocol of your remote. See the other example for this.
+// Choose the IR protocol of your remote.
 CNec IRLremote;
 
 void setup()
@@ -83,11 +84,10 @@ void setup()
   if (!IRLremote.begin(pinIR))
     Serial.println(F("You did not choose a valid pin."));
 
-  //  LEDS.addLeds<LED_TYPE, LED_DT, COLOR_ORDER>(leds, NUM_LEDS);      // For WS2812B - Does not work due to 3 pin configuration.
   LEDS.addLeds<LED_TYPE, LED_DT, LED_CK, COLOR_ORDER>(leds, NUM_LEDS);   // For APA102 or WS2801
 
   FastLED.setBrightness(max_bright);
-  set_max_power_in_volts_and_milliamps(5, 1000);               // FastLED Power management set at 5V, 500mA.
+  set_max_power_in_volts_and_milliamps(5, 1000);               // FastLED Power management set at 5V, 1000mA.
 
   ledMode = 6; 
 
@@ -129,16 +129,17 @@ void irrecv() {
 
       case 92:  max_bright=min(max_bright*2,255); LEDS.setBrightness(max_bright);   break;          //a1 - Brightness up
       case 93:  max_bright=max(max_bright/2,1); LEDS.setBrightness(max_bright);   break;          //a2 - Brightness down
-      case 65:  toggle_on_off();   break;          //a3 - Dunno
-      case 64:  strobe_mode(ledMode,1);   break;          //a4 - Off
+      case 65:     break;          //a3 - Dunno
+      case 64:  toggle_on_off();   break;          //a4 - Off
     
       case 12:  strobe_mode(5,1); break;//fill_solid(leds, NUM_LEDS, CHSV( 192, 255, 255));   break;          //DIY1 - 
       case 13:  strobe_mode(6,1);   break;          //DIY2 - 
 
-      case 88: static_color(0); break; // Red (B1)
-      case 89: static_color(96); break; // Green (B2)
-      case 69: static_color(160); break; // Blue (B3)
-      case 72: static_color(224); break; // Pink (C4)
+      case 88: static_color(0,255); break; // Red (B1)
+      case 89: static_color(96,255); break; // Green (B2)
+      case 69: static_color(160,255); break; // Blue (B3)
+      case 68: static_color(0,0); break; // White (B4)
+      case 72: static_color(224,255); break; // Pink (C4)
     
       default: break;                                // We could do something by default
     } // switch
@@ -176,10 +177,10 @@ void toggle_on_off() {
   }
 }
 
-void static_color(uint8_t hue) {
+void static_color(uint8_t hue, uint8_t saturation) {
   staticMode = true;
   fill_solid(leds,NUM_LEDS,CRGB(0,0,0));
   delay(10);
-  fill_solid( leds, NUM_LEDS, CHSV( hue, 255, 255) );
+  fill_solid( leds, NUM_LEDS, CHSV( hue, saturation, 255) );
 }
 
